@@ -9,6 +9,7 @@
 import UIKit
 import RealmSwift
 import SwipeCellKit
+import ChameleonFramework
 
 class CategoryViewController: UITableViewController {
     var categoryList : Results<Category>?
@@ -32,10 +33,11 @@ class CategoryViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Category", for: indexPath) as! CategoryCell
         
-        setUpTableViewCell(item: cell)
-        
-        cell.labelView.text = categoryList?[indexPath.row].title ?? ""
-        
+        let category = categoryList?[indexPath.row] ?? Category()
+        cell.labelView.text = category.title
+        cell.borderView.layer.borderColor = UIColor(hexString: category.color)?.cgColor
+        cell.borderView.layer.borderWidth = 2.5
+        cell.borderView.layer.cornerRadius = 10
         cell.delegate = self
         
         return cell
@@ -43,6 +45,14 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItems", sender: self)
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+    
+    override func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -58,13 +68,10 @@ class CategoryViewController: UITableViewController {
     private func setUpNavBar(){
         let searchConroller = UISearchController(searchResultsController: nil)
         navigationItem.searchController = searchConroller
+        navigationItem.searchController?.searchResultsUpdater = self
+        navigationItem.searchController?.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
         navigationItem.hidesSearchBarWhenScrolling = false
-    }
-    
-    private func setUpTableViewCell(item cell : CategoryCell){
-        cell.borderView.layer.borderColor = UIColor.blue.cgColor
-        cell.borderView.layer.borderWidth = 1.5
-        cell.borderView.layer.cornerRadius = 10
     }
     
     private func save(category : Category){
@@ -92,6 +99,7 @@ class CategoryViewController: UITableViewController {
             if !(categoryTitleField.text!.isEmpty){
                 let newCategory = Category()
                 newCategory.title = categoryTitleField.text!
+                newCategory.color = UIColor.randomFlat.hexValue()
                 
                 self.save(category : newCategory)
             }
@@ -131,6 +139,18 @@ class CategoryViewController: UITableViewController {
             categoryTitleField.placeholder = "Update category"
         }
         present(alert, animated: true, completion: nil)
+    }
+}
+
+extension CategoryViewController: UISearchResultsUpdating{
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = searchController.searchBar.text!
+        if query.count == 0{
+            loadCategories()
+        }else{
+            categoryList = categoryList?.filter("title CONTAINS[cd] %@", query)
+            self.tableView.reloadData()
+        }
     }
 }
 

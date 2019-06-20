@@ -9,6 +9,7 @@
 import UIKit
 import RealmSwift
 import SwipeCellKit
+import ChameleonFramework
 
 class ItemViewController: UITableViewController {
     let realm = try! Realm()
@@ -24,6 +25,16 @@ class ItemViewController: UITableViewController {
         super.viewDidLoad()
         
         setUpNavBar()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        if let hexColor = selectedCategory?.color{
+            setUpNavBarColor(colorCode: hexColor)
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        setUpNavBarColor(colorCode: UIColor.white.hexValue())
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -82,7 +93,22 @@ class ItemViewController: UITableViewController {
         navigationItem.title = selectedCategory?.title
         let searchConroller = UISearchController(searchResultsController: nil)
         navigationItem.searchController = searchConroller
+        navigationItem.searchController?.searchResultsUpdater = self
+        navigationItem.searchController?.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
         navigationItem.hidesSearchBarWhenScrolling = false
+    }
+    
+    private func setUpNavBarColor(colorCode hexColor : String){
+        guard let navBar = navigationController?.navigationBar else{
+            fatalError()
+        }
+        
+        if let navColor = UIColor(hexString: hexColor){
+            navBar.barTintColor = navColor
+            navBar.tintColor = ContrastColorOf(navColor, returnFlat: false)
+            navBar.largeTitleTextAttributes  = [NSAttributedString.Key.foregroundColor: ContrastColorOf(navColor, returnFlat: false)]
+        }
     }
     
     private func loadItems(){
@@ -115,13 +141,27 @@ class ItemViewController: UITableViewController {
     }
 }
 
+extension ItemViewController: UISearchResultsUpdating{
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = searchController.searchBar.text!
+        if query.count == 0{
+            self.loadItems()
+        }else{
+            items = items?.filter("title CONTAINS[cd] %@", query)
+            self.tableView.reloadData()
+        }
+    }
+    
+    
+}
+
 extension ItemViewController: SwipeTableViewCellDelegate{
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
         guard orientation == .right else { return nil }
         
         let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
             // handle action by updating model with deletion
-            if let noteToBeDeleted = self.selectedCategory?.items[indexPath.row]{
+            if let noteToBeDeleted = self.items?[indexPath.row]{
                 do{
                     try self.realm.write {
                         self.realm.delete(noteToBeDeleted)
@@ -139,7 +179,7 @@ extension ItemViewController: SwipeTableViewCellDelegate{
         
         let editAction = SwipeAction(style: .default, title: "Edit") { action, indexPath in
             // handle action by updating model with deletion
-            if let itemToBeEdit = self.selectedCategory?.items[indexPath.row]{
+            if let itemToBeEdit = self.items?[indexPath.row]{
                 self.updateNoteTitle(alertTitle: "Update Note", actionTitle: "Note", note: itemToBeEdit)
             }
             

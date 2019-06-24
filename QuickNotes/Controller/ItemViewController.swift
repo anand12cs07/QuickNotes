@@ -33,6 +33,16 @@ class ItemViewController: UITableViewController {
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        if let hexValue = UIColor(hexString: selectedCategory!.color)  {
+            navigationItem.searchController?.searchBar.tintColor = ContrastColorOf(hexValue, returnFlat: false)
+            
+            let textFieldInsideSearchBar = navigationItem.searchController?.searchBar.value(forKey: "searchField") as? UITextField
+            textFieldInsideSearchBar?.textColor = ContrastColorOf(hexValue, returnFlat: false)
+        }
+        
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         setUpNavBarColor(colorCode: UIColor.white.hexValue())
     }
@@ -43,9 +53,12 @@ class ItemViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Item", for: indexPath) as! ItemCell
-        cell.titleLabel.text = items?[indexPath.row].title ?? "No Note found"
+        cell.noteItem = items?[indexPath.row]
+        cell.setNote()
         
         cell.delegate = self
+        cell.checkBoxDelegate = self
+        
         return cell
     }
     
@@ -58,35 +71,36 @@ class ItemViewController: UITableViewController {
     }
     
     @IBAction func addItem(_ sender: Any) {
-        var itemTextField = UITextField()
-        
-        let alert = UIAlertController(title: "Add Notes", message: "", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Add", style: .default) { (action) in
-            
-        if let category = self.selectedCategory{
-            do{
-                try self.realm.write {
-                    let newItem = Item()
-                    if !(itemTextField.text!.isEmpty){
-                        newItem.title = itemTextField.text!
-                        category.items.append(newItem)
-                    }
-                }
-            }catch{
-                print("\(error)")
-            }
-        }
-            
-        self.tableView.reloadData()
-            
-        }
-        
-        alert.addTextField { (textField) in
-            itemTextField = textField
-            itemTextField.placeholder = "Add new item"
-        }
-        alert.addAction(action)
-        present(alert, animated: true, completion: nil)
+        performSegue(withIdentifier: "showDatePopUp", sender: self)
+//        var itemTextField = UITextField()
+//
+//        let alert = UIAlertController(title: "Add Notes", message: "", preferredStyle: .alert)
+//        let action = UIAlertAction(title: "Add", style: .default) { (action) in
+//
+//        if let category = self.selectedCategory{
+//            do{
+//                try self.realm.write {
+//                    let newItem = Item()
+//                    if !(itemTextField.text!.isEmpty){
+//                        newItem.title = itemTextField.text!
+//                        category.items.append(newItem)
+//                    }
+//                }
+//            }catch{
+//                print("\(error)")
+//            }
+//        }
+//
+//        self.tableView.reloadData()
+//
+//        }
+//
+//        alert.addTextField { (textField) in
+//            itemTextField = textField
+//            itemTextField.placeholder = "Add new item"
+//        }
+//        alert.addAction(action)
+//        present(alert, animated: true, completion: nil)
     }
     
     private func setUpNavBar(){
@@ -124,7 +138,9 @@ class ItemViewController: UITableViewController {
             {
                 do{
                     try self.realm.write {
-                        note.title = noteTitle
+                        if !noteTitle.isEmpty{
+                            note.title = noteTitle
+                        }
                     }
                 }catch{
                     print("\(error)")
@@ -151,8 +167,19 @@ extension ItemViewController: UISearchResultsUpdating{
             self.tableView.reloadData()
         }
     }
-    
-    
+}
+
+extension ItemViewController: CheckBoxDelegate{
+    func toggleCheckBox(note: Item, status: Bool) {
+        do{
+            try self.realm.write {
+                note.done = status
+            }
+        }catch{
+            print("\(error)")
+        }
+        self.tableView.reloadData()
+    }
 }
 
 extension ItemViewController: SwipeTableViewCellDelegate{
@@ -180,7 +207,7 @@ extension ItemViewController: SwipeTableViewCellDelegate{
         let editAction = SwipeAction(style: .default, title: "Edit") { action, indexPath in
             // handle action by updating model with deletion
             if let itemToBeEdit = self.items?[indexPath.row]{
-                self.updateNoteTitle(alertTitle: "Update Note", actionTitle: "Note", note: itemToBeEdit)
+                self.updateNoteTitle(alertTitle: "Update Note", actionTitle: "Update", note: itemToBeEdit)
             }
             
         }

@@ -29,15 +29,33 @@ class ItemCell : SwipeTableViewCell{
     
     func setNote() {
         checkBox.isSelected = noteItem.done
-        if noteItem.done {
-            setLabels(titleText: noteItem.title, reminderText: "Reminder: 23 May, 9:00 AM")
+        if let date = noteItem.date{
+            reminderLabel.textColor = date < Date() ? UIColor.red : UIColor.black
+            
+            if noteItem.done {
+                titleLabel.attributedText = addStrike(title: noteItem.title)
+                reminderLabel.attributedText = addStrike(title: "Reminder: " + getFormattedDate(date: date))
+            }else{
+                // clear strikethrough
+                setLabels(titleText: "", reminderText: "")
+                // set labels
+                titleLabel.text = noteItem.title
+                reminderLabel.text = "Reminder: " + getFormattedDate(date: date)
+            }
         }else{
-            // clear strikethrough
-            setLabels(titleText: "", reminderText: "")
-            // set labels
-            titleLabel.text = noteItem.title
-            reminderLabel.text = "Reminder: 23 May, 9:00 AM"
+            if noteItem.done {
+                titleLabel.attributedText = addStrike(title: noteItem.title)
+            }else{
+                // clear strikethrough
+                setLabels(titleText: "", reminderText: "")
+                // set labels
+                titleLabel.text = noteItem.title
+            }
+            reminderLabel.text = "Reminder: None"
+
         }
+        
+        
     }
     
     private func setLabels(titleText: String, reminderText: String){
@@ -50,5 +68,11 @@ class ItemCell : SwipeTableViewCell{
         attributeString.addAttribute(NSAttributedString.Key.strikethroughStyle, value: 2, range: NSMakeRange(0, attributeString.length))
         
         return attributeString
+    }
+    
+    private func getFormattedDate(date: Date) -> String{
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM, HH:mm a"
+        return formatter.string(from: date)
     }
 }

@@ -284,6 +284,7 @@
                         <viewLayoutGuide key="safeArea" id="1Kn-XW-B3Y"/>
                     </view>
                     <connections>
+                        <outlet property="alarmToggle" destination="cDD-Ne-RdA" id="M8b-JV-2W5"/>
                         <outlet property="datePicker" destination="5xf-Yv-kM4" id="zTx-49-gnX"/>
                         <outlet property="noteAction" destination="GII-w9-XVf" id="6ot-3c-WmW"/>
                         <outlet property="noteTextField" destination="xzF-Zv-CvR" id="3oo-Ec-NEe"/>

@@ -15,6 +15,8 @@ class ItemViewController: UITableViewController {
     let realm = try! Realm()
     var items : Results<Item>?
     
+    var popUpViewController: PopUpViewController!
+    
     var selectedCategory : Category?{
         didSet{
             loadItems()
@@ -103,6 +105,13 @@ class ItemViewController: UITableViewController {
 //        present(alert, animated: true, completion: nil)
     }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDatePopUp"{
+            popUpViewController = segue.destination as? PopUpViewController
+            popUpViewController.manipulationDelegate = self
+        }
+    }
+    
     private func setUpNavBar(){
         navigationItem.title = selectedCategory?.title
         let searchConroller = UISearchController(searchResultsController: nil)
@@ -180,6 +189,32 @@ extension ItemViewController: CheckBoxDelegate{
         }
         self.tableView.reloadData()
     }
+}
+
+extension ItemViewController: ItemManipulationDelegate{
+    func addNoteItem(title: String, date: Date?, notifyID: String?) {
+        do{
+            try self.realm.write {
+            let newItem = Item()
+            if !(title.isEmpty){
+                newItem.title = title
+                newItem.date = date
+                newItem.notificationID = notifyID
+                self.selectedCategory?.items.append(newItem)
+                popUpViewController.setNotification(item: newItem)
+               }
+             }
+            }catch{
+               print("\(error)")
+          }
+        self.tableView.reloadData()
+    }
+    
+    func updateNoteItem(title: String, date: Date?, notifyID: String?) {
+        
+    }
+    
+    
 }
 
 extension ItemViewController: SwipeTableViewCellDelegate{

@@ -14,6 +14,7 @@ import ChameleonFramework
 class ItemViewController: UITableViewController {
     let realm = try! Realm()
     var items : Results<Item>?
+    var itemToUpdate: Item?
     
     var popUpViewController: PopUpViewController!
     
@@ -74,41 +75,13 @@ class ItemViewController: UITableViewController {
     
     @IBAction func addItem(_ sender: Any) {
         performSegue(withIdentifier: "showDatePopUp", sender: self)
-//        var itemTextField = UITextField()
-//
-//        let alert = UIAlertController(title: "Add Notes", message: "", preferredStyle: .alert)
-//        let action = UIAlertAction(title: "Add", style: .default) { (action) in
-//
-//        if let category = self.selectedCategory{
-//            do{
-//                try self.realm.write {
-//                    let newItem = Item()
-//                    if !(itemTextField.text!.isEmpty){
-//                        newItem.title = itemTextField.text!
-//                        category.items.append(newItem)
-//                    }
-//                }
-//            }catch{
-//                print("\(error)")
-//            }
-//        }
-//
-//        self.tableView.reloadData()
-//
-//        }
-//
-//        alert.addTextField { (textField) in
-//            itemTextField = textField
-//            itemTextField.placeholder = "Add new item"
-//        }
-//        alert.addAction(action)
-//        present(alert, animated: true, completion: nil)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDatePopUp"{
             popUpViewController = segue.destination as? PopUpViewController
             popUpViewController.manipulationDelegate = self
+            popUpViewController.noteItem = itemToUpdate
         }
     }
     
@@ -187,6 +160,12 @@ extension ItemViewController: CheckBoxDelegate{
         }catch{
             print("\(error)")
         }
+        
+        if status{
+            popUpViewController.deleteNotification(notifyID: note.notificationID!)
+        }else{
+            popUpViewController.setNotification(catagoryName: selectedCategory?.title ?? "Hi", item: note)
+        }
         self.tableView.reloadData()
     }
 }
@@ -201,7 +180,7 @@ extension ItemViewController: ItemManipulationDelegate{
                 newItem.date = date
                 newItem.notificationID = notifyID
                 self.selectedCategory?.items.append(newItem)
-                popUpViewController.setNotification(item: newItem)
+                popUpViewController.setNotification(catagoryName: selectedCategory!.title, item: newItem)
                }
              }
             }catch{
@@ -211,7 +190,24 @@ extension ItemViewController: ItemManipulationDelegate{
     }
     
     func updateNoteItem(title: String, date: Date?, notifyID: String?) {
-        
+        if !title.isEmpty
+        {
+            do{
+                try self.realm.write {
+                    if let note = itemToUpdate{
+                        note.title = title
+                        note.date = date
+                        note.notificationID = notifyID
+                        popUpViewController.deleteNotification(notifyID: note.notificationID!)
+                        popUpViewController.setNotification(catagoryName: selectedCategory!.title, item: note)
+
+                    }
+                }
+            }catch{
+                print("\(error)")
+            }
+        }
+        self.tableView.reloadData()
     }
     
     
@@ -226,8 +222,12 @@ extension ItemViewController: SwipeTableViewCellDelegate{
             if let noteToBeDeleted = self.items?[indexPath.row]{
                 do{
                     try self.realm.write {
+                        self.popUpViewController.deleteNotification(notifyID: self.items?[indexPath.row].notificationID ?? "")
+                        
                         self.realm.delete(noteToBeDeleted)
+                        self.itemToUpdate = nil
                     }
+                    
                 }catch{
                     print("\(error)")
                 }
@@ -242,7 +242,8 @@ extension ItemViewController: SwipeTableViewCellDelegate{
         let editAction = SwipeAction(style: .default, title: "Edit") { action, indexPath in
             // handle action by updating model with deletion
             if let itemToBeEdit = self.items?[indexPath.row]{
-                self.updateNoteTitle(alertTitle: "Update Note", actionTitle: "Update", note: itemToBeEdit)
+                self.itemToUpdate = itemToBeEdit
+                self.performSegue(withIdentifier: "showDatePopUp", sender: self)
             }
             
         }

@@ -52,6 +52,7 @@ class ItemCell : SwipeTableViewCell{
                 titleLabel.text = noteItem.title
             }
             reminderLabel.text = "Reminder: None"
+            reminderLabel.textColor = UIColor.black
 
         }
         

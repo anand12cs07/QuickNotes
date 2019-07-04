@@ -51,26 +51,27 @@ class PopUpViewController: UIViewController {
             manipulationDelegate?.addNoteItem(title: noteTextField.text!, date: dateTimeForReminder, notifyID: UUID().uuidString)
             
         }else{
-            manipulationDelegate?.updateNoteItem(title: "", date: Date(), notifyID: noteItem?.notificationID)
+            manipulationDelegate?.updateNoteItem(title: noteTextField.text!, date: datePicker.date, notifyID: noteItem?.notificationID)
         }
         dismiss(animated: true, completion: nil)
     }
     
     private func setUpPopUp(){
-        popUpTitle.text = noteItem != nil ? "Update Note" : "Add"
+        popUpTitle.text = noteItem != nil ? "Update Note" : "Add Note"
         noteAction.setTitle(noteItem != nil ? "Update" : "Add", for: .normal)
+        noteTextField.text = noteItem?.title ?? ""
         datePicker.setDate(noteItem?.date ?? Date(), animated:  true)
         datePicker.isEnabled = noteItem != nil
         alarmToggle.isSelected = noteItem == nil
     }
     
-    public func setNotification(item: Item){
+    public func setNotification(catagoryName: String, item: Item){
         if let notifyDate = item.date{
             let center = UNUserNotificationCenter.current()
             
             // Step 2: Create the notification content
             let content = UNMutableNotificationContent()
-            content.title = "Quick Notes"
+            content.title = catagoryName
             content.body = item.title
             
             // Step 3: Create the notification trigger
@@ -89,6 +90,11 @@ class PopUpViewController: UIViewController {
                 // Check the error parameter and handle any errors
             }
         }
+    }
+    
+    public func deleteNotification(notifyID: String){
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notifyID])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notifyID])
     }
     
 }

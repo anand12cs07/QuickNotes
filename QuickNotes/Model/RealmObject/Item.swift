@@ -13,7 +13,7 @@ class Item : Object{
     @objc dynamic var title = ""
     @objc dynamic var done :Bool = false
     @objc dynamic var date : Date?
-    @objc dynamic var notificationID : String?
+    @objc dynamic var notificationID : String? = ""
     var parentCategory = LinkingObjects(fromType: Category.self, property: "items")
     
 }

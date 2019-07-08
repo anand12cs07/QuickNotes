@@ -81,6 +81,7 @@ class PopUpViewController: UIViewController {
             
             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
             
+            print("\(item.notificationID!)")
             // Step 4: Create the request
             
             let request = UNNotificationRequest(identifier: item.notificationID!, content: content, trigger: trigger)
@@ -93,6 +94,7 @@ class PopUpViewController: UIViewController {
     }
     
     public func deleteNotification(notifyID: String){
+        print("Delete: " + notifyID)
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notifyID])
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notifyID])
     }

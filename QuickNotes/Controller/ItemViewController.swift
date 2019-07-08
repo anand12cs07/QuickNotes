@@ -160,12 +160,6 @@ extension ItemViewController: CheckBoxDelegate{
         }catch{
             print("\(error)")
         }
-        
-        if status{
-            popUpViewController.deleteNotification(notifyID: note.notificationID!)
-        }else{
-            popUpViewController.setNotification(catagoryName: selectedCategory?.title ?? "Hi", item: note)
-        }
         self.tableView.reloadData()
     }
 }

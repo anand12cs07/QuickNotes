@@ -22,9 +22,11 @@ class ItemCell : SwipeTableViewCell{
     
     var noteItem: Item!
     var checkBoxDelegate : CheckBoxDelegate?
+    var buttonAction: ((UIButton) -> Void)?
     
     @IBAction func checkBox(_ sender: UIButton) {
-        checkBoxDelegate?.toggleCheckBox(note: noteItem, status: !sender.isSelected)
+//        self.checkBoxDelegate?.toggleCheckBox(note: noteItem, status: !sender.isSelected)
+        self.buttonAction?(sender)
     }
     
     func setNote() {

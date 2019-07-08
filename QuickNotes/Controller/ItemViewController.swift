@@ -62,6 +62,11 @@ class ItemViewController: UITableViewController {
         cell.delegate = self
         cell.checkBoxDelegate = self
         
+//        2nd method
+        cell.buttonAction = { sender in
+            self.toggleItem(index: indexPath.row, toggleStatus: !sender.isSelected)
+        }
+        
         return cell
     }
     
@@ -112,30 +117,17 @@ class ItemViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    private func updateNoteTitle(alertTitle: String, actionTitle: String, note: Item){
-        var noteTextField = UITextField()
-        let alert = UIAlertController(title: alertTitle, message: "", preferredStyle: .alert)
-        let action = UIAlertAction(title: actionTitle, style: .default) { (action) in
-            if let noteTitle = noteTextField.text
-            {
-                do{
-                    try self.realm.write {
-                        if !noteTitle.isEmpty{
-                            note.title = noteTitle
-                        }
-                    }
-                }catch{
-                    print("\(error)")
-                }
+    private func toggleItem(index: Int, toggleStatus: Bool){
+        if let item = items?[index]{
+            do{
+            try self.realm.write {
+                item.done = toggleStatus
             }
-            self.tableView.reloadData()
+        }catch{
+            print("\(error)")
         }
-        alert.addTextField { (textField) in
-            noteTextField = textField
-            noteTextField.text = note.title
-        }
-        alert.addAction(action)
-        present(alert,animated: true,completion: nil)
+        self.tableView.reloadData()
+    }
     }
 }
 
@@ -153,14 +145,14 @@ extension ItemViewController: UISearchResultsUpdating{
 
 extension ItemViewController: CheckBoxDelegate{
     func toggleCheckBox(note: Item, status: Bool) {
-        do{
-            try self.realm.write {
-                note.done = status
-            }
-        }catch{
-            print("\(error)")
-        }
-        self.tableView.reloadData()
+//        do{
+//            try self.realm.write {
+//                note.done = status
+//            }
+//        }catch{
+//            print("\(error)")
+//        }
+//        self.tableView.reloadData()
     }
 }
 

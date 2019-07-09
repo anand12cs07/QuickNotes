@@ -4,4 +4,4 @@ This iOS app is a day planner and task scheduler app, including to do list, cate
 You can use the app to manage your routine, plan your schedule and organise your daily tasks in a clear and easy way.
 
 ### Working Example
-<img src="https://github.com/anand12cs07/QuickNotes/blob/master/Screenshots/QuickNote.gif" height="667" width="375">
+<img src="https://github.com/anand12cs07/QuickNotes/blob/master/Screenshots/QuickNote.gif" height="534" width="300">
